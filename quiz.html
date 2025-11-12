@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mental Health Quick Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #d7e8ff, #b3d1ff);
+      color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      width: 400px;
+      text-align: center;
+      position: relative;
+    }
+
+    h1 {
+      color: #0066cc;
+      font-size: 1.8em;
+      margin-bottom: 20px;
+    }
+
+    .question {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 20px;
+      line-height: 1.5em;
+    }
+
+    /* Emoji Options in 2x2 Grid */
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      justify-items: center;
+    }
+
+    .options button {
+      width: 100%;
+      padding: 15px;
+      font-size: 2em;
+      border: none;
+      border-radius: 12px;
+      background-color: #f0f7ff;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .options button:hover {
+      background-color: #cce0ff;
+      transform: scale(1.05);
+    }
+
+    #timer {
+      font-size: 1.2em;
+      color: #0066cc;
+      margin-top: 25px;
+    }
+
+    #result {
+      display: none;
+    }
+
+    .score {
+      font-size: 1.3em;
+      color: #333;
+      margin: 10px 0;
+    }
+
+    .emoji-result {
+      font-size: 3em;
+      margin: 10px 0;
+    }
+
+    button.restart-btn {
+      margin-top: 20px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button.restart-btn:hover {
+      background-color: #004c99;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Mental Health Quick Test</h1>
+    <div id="quiz">
+      <div class="question" id="question">Loading question...</div>
+      <div class="options" id="options"></div>
+      <div id="timer">⏳ Time left: <span id="time">5</span>s</div>
+    </div>
+
+    <div id="result">
+      <h2>Test Complete</h2>
+      <div class="emoji-result" id="emojiResult"></div>
+      <p class="score" id="scoreText"></p>
+      <button class="restart-btn" onclick="startTest()">Restart Test</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      "How are you feeling right now?",
+      "Did you sleep well last night?",
+      "Do you feel motivated today?",
+      "Are you finding it easy to concentrate?",
+      "Do you feel relaxed at this moment?",
+      "Have you felt stressed recently?",
+      "Are you satisfied with your daily routine?",
+      "Do you feel supported by your friends or family?",
+      "Do you take breaks when you need them?",
+      "Are you feeling confident today?"
+    ];
+
+    // Only 4 emojis now for 2x2 layout
+    const emojiOptions = ["😀", "😐", "😟", "😢"];
+    let score = 0;
+    let timeLeft = 5;
+    let timer;
+    let availableQuestions = [...questions];
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const timeEl = document.getElementById("time");
+    const resultEl = document.getElementById("result");
+    const scoreText = document.getElementById("scoreText");
+    const quizEl = document.getElementById("quiz");
+    const emojiResult = document.getElementById("emojiResult");
+
+    function startTest() {
+      availableQuestions = [...questions];
+      score = 0;
+      resultEl.style.display = "none";
+      quizEl.style.display = "block";
+      showNextQuestion();
+    }
+
+    function showNextQuestion() {
+      if (availableQuestions.length === 0) {
+        endTest();
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+      const currentQuestion = availableQuestions[randomIndex];
+      availableQuestions.splice(randomIndex, 1);
+
+      questionEl.textContent = currentQuestion;
+      optionsEl.innerHTML = "";
+
+      emojiOptions.forEach((emoji, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = emoji;
+        btn.onclick = () => {
+          score += (emojiOptions.length - index);
+          clearInterval(timer);
+          showNextQuestion();
+        };
+        optionsEl.appendChild(btn);
+      });
+
+      timeLeft = 5;
+      timeEl.textContent = timeLeft;
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          showNextQuestion();
+        }
+      }, 1000);
+    }
+
+    function endTest() {
+      quizEl.style.display = "none";
+      resultEl.style.display = "block";
+
+      let avg = score / questions.length;
+      let emoji = "";
+      let message = "";
+
+      if (avg > 3.5) {
+        emoji = "😄";
+        message = "You seem happy and mentally strong!";
+      } else if (avg > 2.5) {
+        emoji = "🙂";
+        message = "You're doing okay, keep maintaining balance!";
+      } else if (avg > 1.5) {
+        emoji = "😐";
+        message = "You might be a bit low — take some rest.";
+      } else {
+        emoji = "😟";
+        message = "You seem stressed — try relaxing activities.";
+      }
+
+      emojiResult.textContent = emoji;
+      scoreText.textContent = `${message} (Score: ${score})`;
+    }
+
+    startTest();
+  </script>
+</body>
+</html>
